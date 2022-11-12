@@ -1,0 +1,66 @@
+
+It would generally help to have a unique list of all the characters that are actually chinese characters, rather than a list of things that are not chinese characters (stop words/chars). I guess both would be good for different things. 
+
+I want to try enhancing the segmentation to use the frequency information. How would I accomplish that. 
+I would have to find every dictionary word that exists in a given sentence, then piece them all together 
+But then what do I do when I encounter things that aren't in the dictionary. I guess I just let them exist as their own words. These become my "stop words"
+So I could sort of build off the longest matching algorithm, but I also need to save all the smaller words start from each character
+我是一个大风车
+我 是 一个 大 大风 风 车 风车
+I think 一个 will come out as an unknown word at the moment? because 一 and 个 by themselves aren't words
+So in this method, you also want to allow longer words to by more likely, because otherwise it's possible that the algorthm just seperates each character because that leads to a higher score than the complete word
+
+大	38361973
+风	3000084
+车	9131035
+
+
+大风	213379
+风车	36437
+
+大 风 车
+大风 车
+大 风车
+
+大风车式	133
+
+this is only necessary when there is actually overlap between the longest matching words, so only this case I need to choose between multiple options, that gets rid of the single character case?
+
+so the algoithm finds 大风 and 风车 and notices that these two words have overlap, so the question is, does the overlap belong to the first word or the second word
+If it belongs to the first word, the resulting separation is 大风 车 which has a combined frequency of 213379 + 9131035 = 9,344,414
+If it belongs to the second word, the resulting seperation is 大 风车 which has a combined frequency of 38361973 + 36437 = 38,398,410 
+and 大 风车 wins! which is right. 
+
+But would this word for more complex scenarios? What if you have more than one character of overlap?
+like ABCD where ABC and BCD are boths words, but ABCD is not, the check would be ABC D and A BCD, what if both D and A by themselves aren't words? that's totally possible, because I'm not currently considering if D is part of a longer subsquent word. 
+
+So I guess I should try to piece together the phrase using the largest pieces, then if there are multiple options that use pieces of the same length, then I have to look at overlap and frequency? 
+
+ABCDE
+ABC
+BCD
+DE
+
+in this case it's obviously ABC and DE
+
+Because the alternative would be 
+A BCD E which has a lower average word length 5/3 vs 5/2
+
+
+If you find any overlap, find the smallest section that completely contains it, without overlapping another section. At least for now so I can think about it
+Then .....  Find the combination of found words that has the highest average word length (so the fewest number of words)
+In order to do that you have to look at all the combinations and keep the ones with the fewest words. Also keep track of the frequency in this step I guess?
+IF you have two or more options tie for first in terms of lowest word count, then take the one with the higher frequency. 
+
+
+So I definitely need some better tracking of characters in the original string
+I think it would be faster to get the longest matching word at each starting point first
+and then go back and check for overlaps? or check for overlaps as you go? 
+If I'm checking as I go then what do I do when I get to an overlap?
+
+How about this, for each starting point, I have a list of words that begin at that point
+	So I know the index, the length, etc. Including or excluding newlines can be discussed later. 
+
+	Then I would take a collection of starting points that don't overlap with other startings points (separated by unknown or whatever), figure that out later as well
+
+	Then I can figure out what to do and at least I'm still using a trie
